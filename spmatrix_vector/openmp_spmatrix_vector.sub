@@ -1,0 +1,91 @@
+#!/bin/bash
+##
+## MPI submission script for PBS 
+## ----------------------------------
+##
+## Follow the 5 steps below to configure. If you edit this from Windows,
+## *before* submitting via "qsub" run "dos2unix" on this file - or you will
+## get strange errors. You have been warned.
+## 
+## STEP 1:
+##
+## Enter a job name after the -N on the line below:
+##
+#PBS -N openMP 
+##
+## STEP 2:
+##
+## The select line below selects 1 chunk of 4 cpus 
+## Make sure to match ncpus to the number of threads 
+##
+#PBS -l select=1:ncpus=16:mpiprocs=1
+##
+## STEP 3:
+##
+## Select correct queue:
+##    reserved   special queue for this course
+##
+#PBS -q two_day
+##
+## STEP 4:
+##
+## Replace the hpc@cranfield.ac.uk email address
+## with your email address after the -M on the line below:
+## Your email address is NOT your username
+##
+#PBS -m abe 
+#PBS -M Anthony.Pitra.502@cranfield.ac.uk
+##
+##
+##
+## DO NOT CHANGE the following lines
+##------------------------------------------------
+#PBS -j oe
+#PBS -W sandbox=PRIVATE
+#PBS -k n
+ln -s $PWD $PBS_O_WORKDIR/$PBS_JOBID
+##
+## Change to working directory
+cd $PBS_O_WORKDIR
+##
+## Calculate number of CPUs
+export cpus=`cat $PBS_NODEFILE | wc -l`
+##
+##
+##-------------------------------------------------
+##
+## STEP 5: 
+## Run the application
+
+    
+##  To be uncommented when you have a parallel version.     
+for exe in spmatrix_vector_CSR spmatrix_vector_CSR_unroll_2 spmatrix_vector_CSR_unroll_4 spmatrix_vector_CSR_unroll_8  
+    do	 
+    for matrice in cage4 olm1000 west2021 mhda416 adder_dcop_32 olafu mcfe rdist2 cavity10 mhd4800a raefsky2 bcsstk17 FEM_3D_thermal1  af23560 lung2 thermal1 thermomech_TK dc1 amazon0302 mac_econ_fwd500 cop20k_A roadNet-PA webbase-1M cant PR02R thermal2 af_1_k101 ML_Laplace nlpkkt80 Cube_Coup_dt0
+    do
+    	echo "=========================================================" 
+    	echo "Executable: $exe    Matrice: $matrice" 
+    	for t in 1  4  8  12  16 
+    	do    
+       		export OMP_NUM_THREADS=$t
+       		./$exe    ../matrices/$matrice/$matrice.mtx
+    	done
+    done	
+done
+
+for exe in spmatrix_vector_ELL spmatrix_vector_ELL_unroll_2 spmatrix_vector_ELL_unroll_8 spmatrix_vector_ELL_unroll_block_2 spmatrix_vector_ELL_unroll_block_2_ro spmatrix_vector_ELL_unroll_block_8_ro 
+    do
+    for matrice in cage4 olm1000 west2021 mhda416 adder_dcop_32 olafu mcfe rdist2 cavity10 mhd4800a raefsky2 bcsstk17 FEM_3D_thermal1  af23560 lung2 thermal1 thermomech_TK amazon0302 mac_econ_fwd500 cop20k_A roadNet-PA webbase-1M cant PR02R thermal2 af_1_k101 ML_Laplace nlpkkt80 Cube_Coup_dt0
+    do
+    	echo "=========================================================" 
+    	echo "Executable: $exe    Matrice: $matrice" 
+    	for t in 1  4  8  12  16 
+    	do    
+       		export OMP_NUM_THREADS=$t
+       		./$exe    ../matrices/$matrice/$matrice.mtx
+    	done
+    done	
+done
+
+
+/bin/rm -f ./$PBS_JOBID
